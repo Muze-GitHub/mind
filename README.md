@@ -5,7 +5,6 @@
 
 ## DeepSeek
 
-API KEY : sk-6c7d3bb34e6a4045866a81db21804fa7
 API 调用文档: [https://api-docs.deepseek.com/zh-cn/]
 Nodejs 调用示例
 `// Please install OpenAI SDK first: `npm install openai`
