@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## 需求描述
 
-## Getting Started
+实现一个思维导图生成器。
+页面首先有一个选择项，可以选择“文章内容”或者“文章链接”，如果选择了文章内容，则展示的是一个大的 Textarea，否则展示的是一个 Input，当点击按钮“生成”开始工作，如果是一个链接 URL，如 [https://zhuanlan.zhihu.com/p/601650206],你需要获取里面的文本内容，然后通过调取 DeepSeek，通过 AI 总结，最后输出一个思维导图展示出来。如果是文章内容，你需要通过 调取 DeepSeek 生成思维导图所需要的数据格式，然后展示出来。
 
-First, run the development server:
+## DeepSeek
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+API KEY : sk-6c7d3bb34e6a4045866a81db21804fa7
+API 调用文档: [https://api-docs.deepseek.com/zh-cn/]
+Nodejs 调用示例
+`// Please install OpenAI SDK first: `npm install openai`
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+import OpenAI from "openai";
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+const openai = new OpenAI({
+baseURL: 'https://api.deepseek.com',
+apiKey: '<DeepSeek API Key>'
+});
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+async function main() {
+const completion = await openai.chat.completions.create({
+messages: [{ role: "system", content: "You are a helpful assistant." }],
+model: "deepseek-chat",
+});
 
-## Learn More
+console.log(completion.choices[0].message.content);
+}
 
-To learn more about Next.js, take a look at the following resources:
+main();`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 技术要求
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1.Next.js
+2.TypeScript
+3.markmap-lib
 
-## Deploy on Vercel
+## 其他要求
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+~ 1.页面风格呈现赛博朋克风格
+~ 2. 展示的内容顺序是： 文章内容 -> DeesSeek 转义的思维导图数据内容 -> 思维导图
+~ 3. 注意组件和逻辑的抽离，如 DeepSeek 的调用需要封装好
+~ 4. 需要补充调试日志

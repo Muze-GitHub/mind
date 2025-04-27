@@ -1,103 +1,168 @@
-import Image from "next/image";
+'use client'
+
+import { useState } from 'react'
+import dynamic from 'next/dynamic'
+
+const MindMap = dynamic(() => import('@/components/MindMap'), { ssr: false })
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [inputType, setInputType] = useState<'content' | 'url'>('content')
+  const [input, setInput] = useState('')
+  const [markdownContent, setMarkdownContent] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleSubmit = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      let content = input
+
+      if (inputType === 'url') {
+        const response = await fetch('/api/fetch-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: input })
+        })
+        const data = await response.json()
+        content = data.content
+      }
+
+      const response = await fetch('/api/generate-mindmap', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content })
+      })
+
+      const data = await response.json()
+      setMarkdownContent(data.markdown)
+    } catch (err) {
+      setError('生成思维导图时发生错误')
+      console.error('Error:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50 text-gray-800 p-4 md:p-8">
+      <div className="max-w-5xl mx-auto space-y-8 relative">
+        {/* 装饰性背景元素 */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+          <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-blue-500/5 blur-3xl rounded-full"></div>
+          <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-cyan-500/5 blur-3xl rounded-full"></div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+
+        {/* 主标题 */}
+        <div className="relative">
+          <h1 className="text-4xl md:text-6xl font-bold text-center mb-2 bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 text-transparent bg-clip-text">
+            思维导图生成器
+          </h1>
+          <p className="text-center text-gray-500 text-sm md:text-base">
+            powered by DeepSeek AI
+          </p>
+        </div>
+
+        {/* 主要内容区域 */}
+        <div className="space-y-6 relative z-10">
+          {/* 切换按钮 */}
+          <div className="flex justify-center gap-4 p-2 bg-white/80 backdrop-blur-sm rounded-lg shadow-lg">
+            <button
+              className={`px-6 py-3 rounded-md transition-all duration-300 ${
+                inputType === 'content'
+                  ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
+                  : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-200'
+              }`}
+              onClick={() => setInputType('content')}
+            >
+              文章内容
+            </button>
+            <button
+              disabled
+              className={`px-6 py-3 rounded-md transition-all cursor-not-allowed duration-300 ${
+                inputType === 'url'
+                  ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg'
+                  : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-200'
+              }`}
+              onClick={() => setInputType('url')}
+            >
+              文章链接
+            </button>
+          </div>
+
+          {/* 输入区域 */}
+          <div className="relative group">
+            {inputType === 'content' ? (
+              <textarea
+                className="w-full h-48 p-6 rounded-lg bg-white/80 text-gray-700 border border-gray-200
+                          focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300
+                          backdrop-blur-sm placeholder:text-gray-400 resize-none shadow-lg"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="请输入文章内容..."
+              />
+            ) : (
+              <input
+                type="url"
+                className="w-full p-6 rounded-lg bg-white/80 text-gray-700 border border-gray-200
+                          focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300
+                          backdrop-blur-sm placeholder:text-gray-400 shadow-lg"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="请输入文章链接..."
+              />
+            )}
+          </div>
+
+          {/* 提交按钮 */}
+          <button
+            className={`w-full py-4 rounded-lg transition-all duration-300 relative overflow-hidden shadow-lg
+                      ${
+                        loading
+                          ? 'bg-gray-400'
+                          : 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:shadow-xl hover:from-blue-600 hover:to-cyan-600'
+                      }
+                      text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed`}
+            onClick={handleSubmit}
+            disabled={loading || !input}
+          >
+            <span className="relative z-10">
+              {loading ? '生成中...' : '生成思维导图'}
+            </span>
+          </button>
+
+          {/* 错误提示 */}
+          {error && (
+            <div className="text-red-500 text-center p-4 bg-red-50 border border-red-200 rounded-lg">
+              {error}
+            </div>
+          )}
+        </div>
+
+        {/* 结果展示区域 */}
+        {markdownContent && (
+          <div className="space-y-8 relative z-10">
+            {/* 思维导图 */}
+            <div className="p-6 rounded-lg bg-white/80 border border-gray-200 shadow-lg backdrop-blur-sm">
+              <h2 className="text-xl font-bold mb-4 text-gray-800">
+                思维导图:
+              </h2>
+              <div className="h-[600px] w-full rounded-lg bg-white border border-gray-100">
+                <MindMap markdown={markdownContent} />
+              </div>
+            </div>
+            {/* Markdown预览 */}
+            <div className="p-6 rounded-lg bg-white/80 border border-gray-200 shadow-lg backdrop-blur-sm">
+              <h2 className="text-xl font-bold mb-4 text-gray-800">
+                DeepSeek 生成的 Markdown:
+              </h2>
+              <pre className="whitespace-pre-wrap text-gray-600 font-mono text-sm bg-gray-50 p-4 rounded-lg">
+                {markdownContent}
+              </pre>
+            </div>
+          </div>
+        )}
+      </div>
+    </main>
+  )
 }
