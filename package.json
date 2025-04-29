@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "antd": "^5.24.9",
     "markmap-lib": "^0.18.11",
     "markmap-view": "^0.18.10",
     "next": "15.3.1",
